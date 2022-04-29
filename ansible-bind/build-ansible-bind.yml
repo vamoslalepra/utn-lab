@@ -1,0 +1,30 @@
+---
+- hosts: DHCPD
+  become: yes
+  roles: 
+    - role: ansible-bind
+      bind__allow_query:
+        - '192.168.2.0/24'
+        - 'localhost'
+      bind__listen_on:
+        - 192.168.2.1
+        - 127.0.0.1
+      bind__allow_recursion: '192.168.2.0/24'
+      bind__empty_contact: 'admin@uniqs.lan'
+      bind__global_zones:
+        'utn.lab':
+          type: 'master'
+          file: 'auto'
+          entries:
+            - { name: '@',                  type: 'NS',     data: 'dhcp-srv.utn.lab.' }
+            - { name: 'dhcp-srv.utn.lab.',   type: 'A',      data: '192.168.2.1'    }
+            - { name: 'dhcp-client.utn.lab.',   type: 'A',      data: '192.168.2.192'    }
+            - { name: 'dhcp-client-2.utn.lab.',   type: 'A',      data: '192.168.2.191'    }
+        '2.168.192.in-addr.arpa':
+          type: 'master'
+          file: 'auto'
+          entries:
+            - { name: '@',                  type: 'NS',     data: 'dhcp-srv.utn.lab.' }
+            - { name: '1',   type: 'PTR',      data: 'dhcp-srv.utn.lab.'    }
+            - { name: '192',   type: 'PTR',      data: 'dhcp-client.utn.lab.'    }
+            - { name: '191',   type: 'PTR',      data: 'dhcp-client-2.utn.lab.'    }   
