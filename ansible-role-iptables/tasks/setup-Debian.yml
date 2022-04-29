@@ -1,0 +1,13 @@
+---
+- name: Install iptables packages
+  apt: 
+    name: "{{ iptables_pkgs }}"
+    state: present
+
+- name: Check if ufw is installed
+  package_facts:
+    manager: "auto"
+
+- name: Ensure ufw is disabled
+  ufw: state=disabled
+  when: "'ufw' in ansible_facts.packages"

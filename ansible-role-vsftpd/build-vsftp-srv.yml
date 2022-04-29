@@ -1,0 +1,48 @@
+---
+- hosts: VSFTPD
+  become: true
+  vars:
+    vsftpd_anon_root: /srv/shares/public
+    vsftpd_local_enable: true
+    vsftpd_local_root: /srv/shares/private
+    vsftpd_options:
+      - key: delete_failed_uploads
+        value: 'YES'
+      - key: ftpd_banner
+        value: 'Welcome to the FTP service'
+  roles:
+    - ansible-role-vsftpd
+  pre_tasks:
+    - debug:
+        var: ansible_python_interpreter
+    - name: Create a mountable directory public if it does not exist
+      file:
+        path: /srv/shares/public
+        state: directory
+        owner: user01
+        group: user01
+        mode: '0775'
+    - name: Create a mountable directory private if it does not exist
+      file:
+        path: /srv/shares/private
+        state: directory
+        owner: user01
+        group: user01
+        mode: '0775'
+  post_tasks:
+    - name: Put a demo file in the anonymous directory
+      copy:
+        dest: '{{ vsftpd_anon_root }}/README'
+        content: 'anon_root'
+    - name: Put a demo file in the user directory
+      copy:
+        dest: '{{ vsftpd_local_root }}/README'
+        content: 'local_root'
+    - name: Add user for testing authenticated access
+      user:
+        name: user401
+        state: present
+        password: "{{ '1234' | password_hash('sha512') }}"
+    - name: VSFTPD apply change configrue
+      shell: systemctl restart vsftpd && systemctl enable vsftpd
+

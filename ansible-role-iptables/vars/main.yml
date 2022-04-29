@@ -1,0 +1,40 @@
+### list of default rulesets - filter table
+iptables_rules_default:
+  initial:
+    - INPUT -i lo -j ACCEPT
+    - INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+    - INPUT -f -j DROP
+    - INPUT -p tcp -m state --state INVALID -j DROP
+    - INPUT -p icmp  --icmp-type echo-request -j ACCEPT
+    - INPUT -p icmp  --icmp-type echo-reply  -j ACCEPT
+  ssh:
+    - INPUT -i enp0s3 -s 192.168.1.156 -p tcp --dport 22 -j ACCEPT
+    - INPUT -i enp0s3 -s 192.168.1.205 -p tcp --dport 22 -j ACCEPT
+  dhcp:
+    - INPUT -i enp0s8 -p udp -m udp --dport 67:68 -m conntrack --ctstate NEW -j ACCEPT
+  dns:
+    - INPUT -i enp0s8 -p udp -m udp --dport 53 -j ACCEPT
+  ftp:
+    - INPUT -p tcp -m tcp --dport 21 -j ACCEPT
+  reject:
+    - INPUT -j REJECT --reject-with icmp-host-prohibited
+
+### enabled rules, da el orden en que se acomodan las distintas secciones                                                                 
+iptables_rules_enabled:                                                              
+  - initial                                                                                                                                                  
+  - ssh                                                                              
+  - dhcp
+  - dns
+  - ftp
+  - reject                                                                           
+
+iptables_rules_nat:                                                                  
+  snat:
+    - POSTROUTING -s 192.168.2.0/24 -o enp0s3 -j MASQUERADE
+
+### enabled rules for nat table                                                      
+iptables_rules_nat_enabled:
+  - snat
+
+# si no se agrega esta variable no funciona
+iptables_show_rules: true
